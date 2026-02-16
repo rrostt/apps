@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bemanning Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">BV</div>
+      <div>
+        <div class="title">Bemanning Visualizer</div>
+        <div class="subtitle">Upload, edit, and export staffing allocations</div>
+      </div>
+    </div>
+    <div class="actions">
+      <label class="year-select">
+        <span>Year</span>
+        <select id="yearSelect"></select>
+      </label>
+      <label class="file-btn">
+        <input id="costFileInput" type="file" accept=".xlsx,.xls" />
+        Upload Costing
+      </label>
+      <label class="file-btn">
+        <input id="fileInput" type="file" accept=".xlsx,.xls" />
+        Upload Staffing
+      </label>
+      <button id="exportBtn" class="primary" disabled>Export Excel</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel main">
+      <div class="panel-header">
+        <div class="tabs">
+          <button id="tabTimeline" class="tab active">Timeline</button>
+          <button id="tabCourses" class="tab">Courses</button>
+          <button id="tabCosting" class="tab">Costing</button>
+        </div>
+        <input id="courseSearch" type="search" placeholder="Search courses" />
+      </div>
+      <div id="timeline" class="timeline"></div>
+      <div id="courseList" class="list"></div>
+      <div id="costView" class="costing"></div>
+
+    </section>
+
+    <section class="panel right">
+      <div class="panel-header">
+        <h2>People</h2>
+        <input id="personSearch" type="search" placeholder="Search people" />
+      </div>
+      <div id="personList" class="list"></div>
+    </section>
+  </main>
+
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="detailTitle" class="detail-title"></h2>
+        <div class="chip" id="detailMeta"></div>
+        <button id="detailClose" class="modal-close">Close</button>
+      </div>
+      <div id="detailView" class="detail"></div>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="detail-title">Edit Course</h2>
+        <button id="editClose" class="modal-close">Close</button>
+      </div>
+      <form id="editForm" class="detail edit-form"></form>
+      <div class="modal-footer">
+        <button id="editCancel" type="button" class="modal-close">Cancel</button>
+        <button id="editSave" type="button" class="primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="nameMapModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="detail-title">Match Names</h2>
+        <button id="nameMapClose" class="modal-close">Close</button>
+      </div>
+      <div class="detail">
+        <div class="cost-meta">Map cost allocation names to staffing names for this year.</div>
+        <div id="nameMapList" class="name-map-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="nameMapSave" type="button" class="primary">Save Mapping</button>
+      </div>
+    </div>
+  </div>
+
+
+  <section class="log" id="log"></section>
+
+  <template id="allocationRowTpl">
+    <div class="allocation" draggable="true">
+      <div class="alloc-name"></div>
+      <div class="alloc-role"></div>
+      <input class="alloc-percent" type="number" min="0" max="100" step="0.1" />
+      <input class="alloc-hours" type="number" min="0" step="0.1" />
+      <button class="alloc-remove">Remove</button>
+    </div>
+  </template>
+
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
