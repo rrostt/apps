@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pi Atlas | Eight Ways to See Pi</title>
+  <meta name="description" content="A playful Pi Day static app with eight animated ways to approximate pi.">
+  <meta name="theme-color" content="#07101c">
+  <style>
+    :root {
+      --bg-1: #07101c;
+      --bg-2: #122038;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-strong: rgba(6, 11, 18, 0.72);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f5f7fb;
+      --muted: #9ca9c0;
+      --green: #59d39b;
+      --pink: #ff7bc2;
+      --amber: #f8d27a;
+      --blue: #79b8ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(121, 184, 255, 0.15), transparent 34%),
+        radial-gradient(circle at 80% 14%, rgba(255, 123, 194, 0.13), transparent 24%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+
+    .shell {
+      width: min(1320px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 20px 0 36px;
+    }
+
+    .topbar {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .hero {
+      padding: 24px;
+      border-radius: 30px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(18px);
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    h1, h2, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4.8vw, 4.2rem);
+      line-height: 0.96;
+      max-width: 12ch;
+      margin-bottom: 10px;
+    }
+
+    .hero-copy {
+      color: #d7e0ef;
+      max-width: 64ch;
+      line-height: 1.5;
+    }
+
+    .hero-top {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .hero-badges,
+    .hero-actions,
+    .method-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge,
+    .meta-pill {
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: #dce5f3;
+    }
+
+    .badge strong {
+      color: white;
+    }
+
+    .method-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .method-strip::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .method-strip::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+    }
+
+    .method-btn,
+    .action-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: 0.18s ease;
+      font: inherit;
+      white-space: nowrap;
+    }
+
+    .method-btn {
+      padding: 11px 15px;
+    }
+
+    .method-btn.active {
+      background: #f5f7fb;
+      color: #08111d;
+      border-color: transparent;
+    }
+
+    .method-btn:hover,
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .method-btn.active:hover {
+      background: #f5f7fb;
+    }
+
+    .layout {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+    }
+
+    .main-card {
+      padding: 22px;
+    }
+
+    .main-grid {
+      display: grid;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .viz-stage {
+      position: relative;
+      border-radius: 24px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .viz-stage::before {
+      content: "";
+      position: absolute;
+      inset: -16%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 30% 24%, rgba(89, 211, 155, 0.1), transparent 24%),
+        radial-gradient(circle at 70% 30%, rgba(255, 123, 194, 0.1), transparent 22%),
+        radial-gradient(circle at 50% 56%, rgba(248, 210, 122, 0.08), transparent 26%);
+      animation: drift 16s linear infinite;
+      opacity: 0.95;
+    }
+
+    #viz {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .stat,
+    .text-panel,
+    .detail-panel {
+      padding: 16px;
+      border-radius: 22px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value,
+    .mono {
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      word-break: break-word;
+    }
+
+    .method-title {
+      font-size: clamp(1.4rem, 2.6vw, 2.3rem);
+      margin-bottom: 8px;
+    }
+
+    .method-meta {
+      margin-top: 12px;
+    }
+
+    .meta-pill {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .method-subtitle,
+    .copy,
+    .small-note {
+      color: #d7e0ef;
+      line-height: 1.55;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .action-btn {
+      padding: 10px 15px;
+    }
+
+    .mini-btn {
+      padding: 8px 12px;
+      font-size: 0.88rem;
+    }
+
+    .ghost-btn {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .slider-row label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .digits {
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid var(--border);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: clamp(1rem, 2vw, 1.45rem);
+      line-height: 1.7;
+      word-break: break-all;
+    }
+
+    .digit {
+      color: #5f6777;
+      transition: color 0.28s ease, text-shadow 0.28s ease;
+    }
+
+    .digit.locked {
+      color: var(--green);
+      text-shadow: 0 0 14px rgba(89, 211, 155, 0.42);
+    }
+
+    .digit.dot {
+      color: var(--muted);
+    }
+
+    .bar {
+      margin-top: 16px;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .bar-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber), white);
+      transition: width 0.45s ease;
+    }
+
+    .detail-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.95rem;
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .pink {
+      color: var(--pink);
+    }
+
+    .amber {
+      color: var(--amber);
+    }
+
+    .blue {
+      color: var(--blue);
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .side-card {
+      padding: 20px;
+    }
+
+    .stage-value {
+      font-size: 4rem;
+      line-height: 1;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      max-width: min(320px, calc(100vw - 32px));
+      padding: 12px 14px;
+      border-radius: 16px;
+      color: white;
+      background: rgba(6, 11, 18, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      font-size: 0.92rem;
+      z-index: 20;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes drift {
+      0% {
+        transform: translate3d(-2%, -1%, 0) scale(1);
+      }
+      50% {
+        transform: translate3d(2%, 2%, 0) scale(1.04);
+      }
+      100% {
+        transform: translate3d(-2%, -1%, 0) scale(1);
+      }
+    }
+
+    @media (min-width: 1040px) {
+      .layout {
+        grid-template-columns: minmax(0, 1.6fr) minmax(340px, 0.85fr);
+      }
+
+      .main-grid {
+        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <section class="hero">
+        <div class="hero-top">
+          <div class="eyebrow">Pi Atlas</div>
+          <div class="hero-badges">
+            <div class="badge"><strong>π Day</strong> interactive</div>
+            <div class="badge">8 animated methods</div>
+          </div>
+        </div>
+        <h1>Eight different ways to watch <em>&pi;</em> appear</h1>
+        <p class="hero-copy">
+          This static SPA compares geometric, probabilistic, analytic, and harmonic routes to π.
+          Each method updates live so you can see which ideas converge smoothly, which wobble,
+          and which lock in digits almost instantly.
+        </p>
+        <div class="hero-actions" style="margin-top: 16px;">
+          <button id="tour-toggle" class="action-btn mini-btn" type="button">Start tour</button>
+          <button id="surprise-btn" class="action-btn ghost-btn mini-btn" type="button">Surprise me</button>
+          <button id="share-btn" class="action-btn ghost-btn mini-btn" type="button">Share this method</button>
+        </div>
+      </section>
+      <div id="method-strip" class="method-strip" aria-label="Pi methods"></div>
+    </div>
+
+    <div class="layout">
+      <section class="card main-card">
+        <div class="main-grid">
+          <div>
+            <div class="viz-stage">
+              <svg id="viz" viewBox="0 0 560 560" aria-label="Pi method visualization"></svg>
+            </div>
+            <div class="stats" style="margin-top: 16px;">
+              <div class="stat">
+                <div id="stat-1-label" class="stat-label">Progress</div>
+                <div id="stat-1-value" class="stat-value">0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Estimate</div>
+                <div id="estimate-value" class="stat-value">3.141592653590</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Error</div>
+                <div id="error-value" class="stat-value">0.0e+0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="side">
+            <div class="text-panel">
+              <h2 id="method-title" class="method-title"></h2>
+              <p id="method-subtitle" class="method-subtitle"></p>
+              <div id="method-meta" class="method-meta"></div>
+            </div>
+
+            <div class="text-panel">
+              <p id="explanation" class="copy"></p>
+              <div class="bar">
+                <div id="accuracy-fill" class="bar-fill"></div>
+              </div>
+              <p class="small-note"><span id="accuracy-count" class="mono">0</span> decimals after the point are currently stable</p>
+            </div>
+
+            <div class="text-panel">
+              <div class="controls">
+                <button id="play-toggle" class="action-btn" type="button">Pause</button>
+                <button id="reset-btn" class="action-btn" type="button">Reset</button>
+              </div>
+              <div class="slider-row">
+                <label for="speed">
+                  <span>Animation speed</span>
+                  <span id="speed-value" class="mono">1.1x</span>
+                </label>
+                <input id="speed" type="range" min="0.4" max="3" step="0.1" value="1.1">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="card side-card">
+          <h2>Decimals as certainty</h2>
+          <div id="digits" class="digits" style="margin-top: 14px;"></div>
+          <p id="estimate-preview" class="small-note mono" style="margin-top: 10px;"></p>
+        </section>
+
+        <section class="card side-card">
+          <h2 id="detail-title">Method details</h2>
+          <div id="detail-list" class="detail-list" style="margin-top: 14px;"></div>
+          <div id="detail-copy-1" class="detail-panel copy" style="margin-top: 14px;"></div>
+          <div id="detail-copy-2" class="detail-panel copy" style="margin-top: 14px;"></div>
+        </section>
+
+        <section class="card side-card">
+          <h2>Current stage</h2>
+          <div id="confirmed-value" class="stage-value" style="margin-top: 12px;">0</div>
+          <p class="small-note">confirmed decimals after the decimal point</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script>
+    const TRUE_PI = Math.PI;
+    const PI_STRING = "3.14159265358979323846264338327950288419716939937510";
+    const SIZE = 560;
+    const CIRCLE_R = 168;
+    const PI_CF = [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2];
+    const METHODS = [
+      { id: "archimedes", label: "Archimedes", family: "geometry", vibe: "clean" },
+      { id: "buffon", label: "Buffon", family: "probability", vibe: "chaotic" },
+      { id: "leibniz", label: "Leibniz", family: "series", vibe: "slow" },
+      { id: "nilakantha", label: "Nilakantha", family: "series", vibe: "smooth" },
+      { id: "ramanujan", label: "Ramanujan", family: "series", vibe: "dramatic" },
+      { id: "continued", label: "Continued Fraction", family: "rational", vibe: "discrete" },
+      { id: "area", label: "Area Slicing", family: "calculus", vibe: "visual" },
+      { id: "fourier", label: "Fourier-Basel", family: "harmonics", vibe: "musical" }
+    ];
+
+    const state = {
+      method: "archimedes",
+      running: true,
+      speed: 1.1,
+      timer: null,
+      methods: {},
+      tour: false,
+      toastTimer: null
+    };
+
+    const el = {
+      methodStrip: document.getElementById("method-strip"),
+      viz: document.getElementById("viz"),
+      stat1Label: document.getElementById("stat-1-label"),
+      stat1Value: document.getElementById("stat-1-value"),
+      estimateValue: document.getElementById("estimate-value"),
+      errorValue: document.getElementById("error-value"),
+      methodTitle: document.getElementById("method-title"),
+      methodSubtitle: document.getElementById("method-subtitle"),
+      explanation: document.getElementById("explanation"),
+      accuracyFill: document.getElementById("accuracy-fill"),
+      accuracyCount: document.getElementById("accuracy-count"),
+      playToggle: document.getElementById("play-toggle"),
+      tourToggle: document.getElementById("tour-toggle"),
+      resetBtn: document.getElementById("reset-btn"),
+      surpriseBtn: document.getElementById("surprise-btn"),
+      shareBtn: document.getElementById("share-btn"),
+      speed: document.getElementById("speed"),
+      speedValue: document.getElementById("speed-value"),
+      digits: document.getElementById("digits"),
+      estimatePreview: document.getElementById("estimate-preview"),
+      methodMeta: document.getElementById("method-meta"),
+      detailTitle: document.getElementById("detail-title"),
+      detailList: document.getElementById("detail-list"),
+      detailCopy1: document.getElementById("detail-copy-1"),
+      detailCopy2: document.getElementById("detail-copy-2"),
+      confirmedValue: document.getElementById("confirmed-value"),
+      toast: document.getElementById("toast")
+    };
+
+    function createInitialState() {
+      return {
+        archimedes: { stepIndex: 0 },
+        buffon: { needles: [], crossings: 0, total: 0 },
+        leibniz: { n: 0, sum: 0, history: [] },
+        nilakantha: { n: 1, value: 3, history: [3] },
+        ramanujan: { k: 0, sum: 0, history: [] },
+        continued: { depth: 1, value: 3, convergents: [3] },
+        area: { slices: 4 },
+        fourier: { n: 0, sum: 0, phase: 0 }
+      };
+    }
+
+    function resetState(methodId) {
+      state.methods = createInitialState();
+      if (methodId) {
+        state.method = methodId;
+      }
+    }
+
+    resetState("archimedes");
+
+    function stableDigits(estimate) {
+      const est = Number.isFinite(estimate) ? estimate.toFixed(50) : "0".padEnd(52, "0");
+      let count = 0;
+      const max = Math.min(est.length, PI_STRING.length);
+      for (let i = 0; i < max; i += 1) {
+        if (est[i] !== PI_STRING[i]) break;
+        count += 1;
+      }
+      return count;
+    }
+
+    function pointsToSvg(points, scale = 1) {
+      const cx = SIZE / 2;
+      const cy = SIZE / 2;
+      const r = CIRCLE_R * scale;
+      return points.map(([x, y]) => `${cx + x * r},${cy + y * r}`).join(" ");
+    }
+
+    function polygonData(n, r = 1) {
+      const step = (Math.PI * 2) / n;
+      const inscribed = [];
+      const circumscribed = [];
+      const tangentScale = 1 / Math.cos(Math.PI / n);
+      for (let i = 0; i < n; i += 1) {
+        const a = -Math.PI / 2 + i * step;
+        inscribed.push([r * Math.cos(a), r * Math.sin(a)]);
+        const t = a + step / 2;
+        circumscribed.push([tangentScale * r * Math.cos(t), tangentScale * r * Math.sin(t)]);
+      }
+      const lower = n * Math.sin(Math.PI / n);
+      const upper = n * Math.tan(Math.PI / n);
+      return { n, inscribed, circumscribed, lower, upper, estimate: (lower + upper) / 2 };
+    }
+
+    function computeContinuedFraction(coeffs) {
+      let num = 1;
+      let den = 0;
+      for (let i = coeffs.length - 1; i >= 0; i -= 1) {
+        const nextNum = coeffs[i] * num + den;
+        den = num;
+        num = nextNum;
+      }
+      return { num, den, value: num / den };
+    }
+
+    function rowHtml(className, label, value) {
+      return `<div class="detail-row"><span class="${className}">${label}</span><span>${value}</span></div>`;
+    }
+
+    function showToast(message) {
+      window.clearTimeout(state.toastTimer);
+      el.toast.textContent = message;
+      el.toast.classList.add("visible");
+      state.toastTimer = window.setTimeout(() => {
+        el.toast.classList.remove("visible");
+      }, 1800);
+    }
+
+    function currentMethodMeta() {
+      return METHODS.find((method) => method.id === state.method);
+    }
+
+    function setMethodHash() {
+      const hash = `#${state.method}`;
+      if (window.location.hash !== hash) {
+        window.history.replaceState(null, "", hash);
+      }
+    }
+
+    function cycleMethod() {
+      const index = METHODS.findIndex((method) => method.id === state.method);
+      const next = METHODS[(index + 1) % METHODS.length];
+      setMethod(next.id, { keepTour: true });
+    }
+
+    function renderDigits(estimate) {
+      const safe = Number.isFinite(estimate) && estimate > 0 ? estimate : 0;
+      const est = safe.toFixed(50);
+      const locked = stableDigits(safe);
+      el.digits.innerHTML = PI_STRING.split("").map((ch, i) => {
+        const classes = ["digit"];
+        if (ch === ".") classes.push("dot");
+        else if (i < locked) classes.push("locked");
+        return `<span class="${classes.join(" ")}">${ch}</span>`;
+      }).join("");
+      el.estimatePreview.textContent = `estimate ≈ ${est.slice(0, 24)}...`;
+    }
+
+    function renderArchimedesViz(data) {
+      return `
+        <defs>
+          <radialGradient id="archGlow" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.12)"></stop>
+            <stop offset="100%" stop-color="rgba(255,255,255,0.02)"></stop>
+          </radialGradient>
+        </defs>
+        <circle cx="${SIZE / 2}" cy="${SIZE / 2}" r="${CIRCLE_R}" fill="url(#archGlow)"></circle>
+        <circle cx="${SIZE / 2}" cy="${SIZE / 2}" r="${CIRCLE_R}" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="2"></circle>
+        <polygon points="${pointsToSvg(data.circumscribed)}" fill="rgba(255,123,194,0.08)" stroke="rgba(255,123,194,0.88)" stroke-width="2"></polygon>
+        <polygon points="${pointsToSvg(data.inscribed)}" fill="rgba(89,211,155,0.08)" stroke="rgba(89,211,155,0.9)" stroke-width="2"></polygon>
+        <text x="${SIZE / 2}" y="${SIZE / 2 + 8}" text-anchor="middle" fill="white" style="font-size:24px;font-family:Consolas,monospace;">π</text>
+      `;
+    }
+
+    function renderBuffonViz(buffon) {
+      const spacing = 46;
+      const lines = [];
+      for (let y = 90; y <= 470; y += spacing) {
+        lines.push(`<line x1="84" y1="${y}" x2="476" y2="${y}" stroke="rgba(255,255,255,0.25)" stroke-width="2"></line>`);
+      }
+      const needles = buffon.needles.map((needle, index) => {
+        const color = needle.crosses ? "rgba(89,211,155,0.88)" : "rgba(255,123,194,0.84)";
+        const opacity = Math.max(0.2, (index + 1) / buffon.needles.length);
+        return `<line x1="${needle.x1}" y1="${needle.y1}" x2="${needle.x2}" y2="${needle.y2}" stroke="${color}" stroke-width="3" stroke-linecap="round" opacity="${opacity}"></line>`;
+      }).join("");
+      return `
+        <rect x="70" y="70" width="420" height="420" rx="24" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.16)"></rect>
+        ${lines.join("")}
+        ${needles}
+        <text x="${SIZE / 2}" y="520" text-anchor="middle" fill="#c7d2e3" style="font-size:16px;font-family:Consolas,monospace;">Estimate from line-crossing probability</text>
+      `;
+    }
+
+    function renderSeriesViz(values, colorA, colorB, title) {
+      const maxAbs = Math.max(0.001, ...values.map((v) => Math.abs(v - TRUE_PI)));
+      const bars = values.map((value, index) => {
+        const x = 68 + index * 19;
+        const err = Math.abs(value - TRUE_PI);
+        const h = 210 * (1 - Math.min(1, err / maxAbs));
+        const y = 390 - h;
+        const fill = index % 2 === 0 ? colorA : colorB;
+        return `<rect x="${x}" y="${y}" width="12" height="${h}" rx="6" fill="${fill}" opacity="${0.34 + (index / values.length) * 0.66}"></rect>`;
+      }).join("");
+      return `
+        <line x1="62" y1="152" x2="498" y2="152" stroke="rgba(248,210,122,0.8)" stroke-dasharray="6 6"></line>
+        <text x="502" y="157" fill="rgba(248,210,122,0.9)" style="font-size:13px;font-family:Consolas,monospace;">π</text>
+        <line x1="62" y1="390" x2="498" y2="390" stroke="rgba(255,255,255,0.12)"></line>
+        ${bars}
+        <text x="${SIZE / 2}" y="510" text-anchor="middle" fill="#c7d2e3" style="font-size:16px;font-family:Consolas,monospace;">${title}</text>
+      `;
+    }
+
+    function renderAreaViz(slices) {
+      const dx = 1 / slices;
+      const rects = [];
+      for (let i = 0; i < slices; i += 1) {
+        const x = i * dx;
+        const mid = x + dx / 2;
+        const h = Math.sqrt(Math.max(0, 1 - mid * mid));
+        const px = 110 + x * 300;
+        const pw = dx * 300;
+        const py = 430 - h * 300;
+        const ph = h * 300;
+        rects.push(`<rect x="${px}" y="${py}" width="${Math.max(1, pw - 1)}" height="${ph}" fill="rgba(121,184,255,0.32)" stroke="rgba(121,184,255,0.16)"></rect>`);
+      }
+      const path = [];
+      for (let i = 0; i <= 80; i += 1) {
+        const x = i / 80;
+        const y = Math.sqrt(Math.max(0, 1 - x * x));
+        path.push(`${110 + x * 300},${430 - y * 300}`);
+      }
+      return `
+        <rect x="110" y="130" width="300" height="300" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.16)"></rect>
+        <path d="M 110 430 L 110 130 ${path.map((p) => `L ${p}`).join(" ")} L 410 430 Z" fill="rgba(89,211,155,0.08)" stroke="rgba(89,211,155,0.9)" stroke-width="2"></path>
+        ${rects.join("")}
+        <text x="${SIZE / 2}" y="510" text-anchor="middle" fill="#c7d2e3" style="font-size:16px;font-family:Consolas,monospace;">Quarter-circle area from slices</text>
+      `;
+    }
+
+    function renderContinuedViz(coeffs, convergent) {
+      const chain = coeffs.map((c, index) => {
+        const x = 88 + index * 34;
+        const y = 160 + (index % 2) * 52;
+        return `<g transform="translate(${x} ${y})"><rect x="0" y="0" width="28" height="28" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)"></rect><text x="14" y="19" text-anchor="middle" fill="white" style="font-size:14px;font-family:Consolas,monospace;">${c}</text></g>`;
+      }).join("");
+      return `
+        <path d="M 82 214 C 144 110, 220 310, 282 214 S 420 118, 478 214" fill="none" stroke="rgba(121,184,255,0.75)" stroke-width="3"></path>
+        ${chain}
+        <text x="${SIZE / 2}" y="370" text-anchor="middle" fill="rgba(248,210,122,0.94)" style="font-size:26px;font-family:Consolas,monospace;">${convergent.num}/${convergent.den}</text>
+        <text x="${SIZE / 2}" y="406" text-anchor="middle" fill="#c7d2e3" style="font-size:16px;font-family:Consolas,monospace;">Convergent depth ${coeffs.length}</text>
+      `;
+    }
+
+    function renderFourierViz(count, sum, phase) {
+      const bars = [];
+      for (let i = 1; i <= Math.min(count, 18); i += 1) {
+        const energy = 1 / (i * i);
+        const h = energy * 180;
+        const x = 72 + (i - 1) * 24;
+        bars.push(`<rect x="${x}" y="${390 - h}" width="14" height="${h}" rx="7" fill="rgba(121,184,255,0.78)"></rect>`);
+      }
+      const wave = [];
+      for (let i = 0; i <= 240; i += 1) {
+        const x = 72 + i * 1.72;
+        const t = (i / 240) * Math.PI * 4;
+        const y = 178 + Math.sin(t + phase) * 24 + Math.sin(3 * t + phase) * 8;
+        wave.push(`${x},${y}`);
+      }
+      return `
+        <polyline points="${wave.join(" ")}" fill="none" stroke="rgba(255,123,194,0.88)" stroke-width="3"></polyline>
+        <line x1="64" y1="390" x2="500" y2="390" stroke="rgba(255,255,255,0.12)"></line>
+        ${bars.join("")}
+        <text x="${SIZE / 2}" y="510" text-anchor="middle" fill="#c7d2e3" style="font-size:16px;font-family:Consolas,monospace;">Harmonic energy and the Basel sum</text>
+      `;
+    }
+
+    function getArchimedesData() {
+      const sides = Array.from({ length: 13 }, (_, k) => 6 * (2 ** k));
+      const current = state.methods.archimedes;
+      return polygonData(sides[Math.min(current.stepIndex, sides.length - 1)]);
+    }
+
+    function getBuffonData() {
+      const s = state.methods.buffon;
+      const spacing = 46;
+      const needleLength = 34;
+      const estimate = s.crossings ? (2 * needleLength * s.total) / (spacing * s.crossings) : 0;
+      return { spacing, needleLength, estimate, ...s };
+    }
+
+    function getLeibnizData() {
+      const s = state.methods.leibniz;
+      return { ...s, estimate: 4 * s.sum };
+    }
+
+    function getNilakanthaData() {
+      const s = state.methods.nilakantha;
+      return { ...s, estimate: s.value };
+    }
+
+    function getRamanujanData() {
+      const s = state.methods.ramanujan;
+      const constant = (2 * Math.sqrt(2)) / 9801;
+      const estimate = s.sum > 0 ? 1 / (constant * s.sum) : 0;
+      return { ...s, estimate };
+    }
+
+    function getContinuedData() {
+      const s = state.methods.continued;
+      const coeffs = PI_CF.slice(0, s.depth);
+      const convergent = computeContinuedFraction(coeffs);
+      return { ...s, coeffs, convergent, estimate: convergent.value };
+    }
+
+    function getAreaData() {
+      const s = state.methods.area;
+      const dx = 1 / s.slices;
+      let areaQuarter = 0;
+      for (let i = 0; i < s.slices; i += 1) {
+        const mid = (i + 0.5) * dx;
+        areaQuarter += Math.sqrt(Math.max(0, 1 - mid * mid)) * dx;
+      }
+      return { ...s, estimate: 4 * areaQuarter };
+    }
+
+    function getFourierData() {
+      const s = state.methods.fourier;
+      const estimate = Math.sqrt(Math.max(0, 6 * s.sum));
+      return { ...s, estimate };
+    }
+
+    function snapshot() {
+      switch (state.method) {
+        case "archimedes": {
+          const data = getArchimedesData();
+          return {
+            title: "Archimedes polygon bounds",
+            subtitle: "Inscribed and circumscribed polygons squeeze π from both sides.",
+            estimate: data.estimate,
+            progressLabel: "Polygon sides",
+            progressValue: data.n.toLocaleString(),
+            explanation: "This is the cleanest geometric picture of convergence: more sides mean tighter bounds and visibly less uncertainty.",
+            detailTitle: "Bounding π",
+            details: [
+              rowHtml("green", "Lower bound", data.lower.toFixed(12)),
+              rowHtml("pink", "Upper bound", data.upper.toFixed(12))
+            ],
+            copy1: "The circle itself never changes. Only the approximation improves, and the visual proof is immediate.",
+            copy2: "This is a strong reference method because it converges smoothly and makes error concrete rather than abstract.",
+            viz: renderArchimedesViz(data)
+          };
+        }
+        case "buffon": {
+          const data = getBuffonData();
+          return {
+            title: "Buffon’s needle",
+            subtitle: "A probability experiment that estimates π from how often thrown needles cross ruled lines.",
+            estimate: data.estimate,
+            progressLabel: "Needles",
+            progressValue: data.total.toLocaleString(),
+            explanation: "Buffon is richer than random dots because the estimate comes from geometry and probability together, but it still jitters.",
+            detailTitle: "Crossing statistics",
+            details: [
+              rowHtml("green", "Crossings", data.crossings.toLocaleString()),
+              rowHtml("pink", "Spacing / length", `${data.spacing} / ${data.needleLength}`)
+            ],
+            copy1: "For needle length L and line spacing t, the crossing probability is 2L/(πt). Rearranging gives an estimate for π.",
+            copy2: "It is still noisy, but the movement is more legible than Monte Carlo dots because each trial has a visible geometric event.",
+            viz: renderBuffonViz(data)
+          };
+        }
+        case "leibniz": {
+          const data = getLeibnizData();
+          const values = data.history.slice(-22);
+          return {
+            title: "Leibniz series",
+            subtitle: "π/4 = 1 - 1/3 + 1/5 - 1/7 + ...",
+            estimate: data.estimate,
+            progressLabel: "Terms",
+            progressValue: data.n.toLocaleString(),
+            explanation: "Leibniz is famous because it is simple, not because it is efficient. The estimate zigzags toward π painfully slowly.",
+            detailTitle: "Alternating partial sums",
+            details: [
+              rowHtml("amber", "Latest term", data.n ? `${(4 * ((data.n % 2 === 1 ? 1 : -1) / (2 * (data.n - 1) + 1))).toExponential(2)}` : "0"),
+              rowHtml("blue", "Stored history", values.length.toString())
+            ],
+            copy1: "Each new odd reciprocal flips the estimate to the other side of π. That alternating structure is easy to explain and animate.",
+            copy2: "It is a good illustration of convergence rate precisely because it is so visibly bad.",
+            viz: renderSeriesViz(values.length ? values : [0], "rgba(89,211,155,0.82)", "rgba(255,123,194,0.8)", "Oscillating partial sums")
+          };
+        }
+        case "nilakantha": {
+          const data = getNilakanthaData();
+          const values = data.history.slice(-22);
+          return {
+            title: "Nilakantha series",
+            subtitle: "π = 3 + 4/(2·3·4) - 4/(4·5·6) + ...",
+            estimate: data.estimate,
+            progressLabel: "Terms",
+            progressValue: (data.n - 1).toLocaleString(),
+            explanation: "Nilakantha keeps the alternating feel of Leibniz but converges much more gracefully, so the decimal lock-in feels intentional instead of chaotic.",
+            detailTitle: "Triple-product corrections",
+            details: [
+              rowHtml("green", "Current base", `${2 * Math.max(1, data.n - 1)}`),
+              rowHtml("blue", "History points", values.length.toString())
+            ],
+            copy1: "Every correction term uses a product of three consecutive integers, which shrinks much faster than the simple odd reciprocals in Leibniz.",
+            copy2: "For visual storytelling this is one of the best numeric companions to Archimedes: it is dynamic, legible, and stable.",
+            viz: renderSeriesViz(values.length ? values : [3], "rgba(121,184,255,0.82)", "rgba(248,210,122,0.82)", "Fast alternating convergence")
+          };
+        }
+        case "ramanujan": {
+          const data = getRamanujanData();
+          const values = data.history.slice(-10);
+          return {
+            title: "Ramanujan series",
+            subtitle: "A famously fast formula where a handful of terms delivers a flood of correct digits.",
+            estimate: data.estimate,
+            progressLabel: "Terms",
+            progressValue: data.k.toLocaleString(),
+            explanation: "This is the opposite of Leibniz. Almost every new term feels dramatic because the estimate becomes absurdly accurate almost immediately.",
+            detailTitle: "Rapid convergence",
+            details: [
+              rowHtml("green", "Partial sum", data.sum.toExponential(5)),
+              rowHtml("amber", "Visible history", values.length.toString())
+            ],
+            copy1: "Ramanujan’s formula computes 1/π through huge factorial terms and powers of 396. The structure looks complicated, but the payoff is spectacular.",
+            copy2: "This is ideal if you want the interface to suddenly light up with correct digits after only a few beats.",
+            viz: renderSeriesViz(values.length ? values : [0], "rgba(248,210,122,0.88)", "rgba(121,184,255,0.82)", "Terms that lock in digits fast")
+          };
+        }
+        case "continued": {
+          const data = getContinuedData();
+          return {
+            title: "Continued fraction convergents",
+            subtitle: "Successive nested fractions produce excellent rational approximations to π.",
+            estimate: data.estimate,
+            progressLabel: "Depth",
+            progressValue: data.depth.toString(),
+            explanation: "Continued fractions turn π into a ladder of rational approximations. Some steps are modest; some leaps are dramatic, especially near 355/113.",
+            detailTitle: "Convergents",
+            details: [
+              rowHtml("green", "Numerator", data.convergent.num.toString()),
+              rowHtml("pink", "Denominator", data.convergent.den.toString())
+            ],
+            copy1: "This view emphasizes approximation by ratios rather than sums or areas. It feels discrete and structural.",
+            copy2: "Strictly speaking this uses the continued fraction of π rather than deriving it from scratch, but it makes a strong visual companion in a survey app.",
+            viz: renderContinuedViz(data.coeffs, data.convergent)
+          };
+        }
+        case "area": {
+          const data = getAreaData();
+          return {
+            title: "Area slicing",
+            subtitle: "Approximate the quarter-circle area with rectangles, then multiply by 4 to recover π.",
+            estimate: data.estimate,
+            progressLabel: "Slices",
+            progressValue: data.slices.toLocaleString(),
+            explanation: "This is integration made visible. The rectangles fill the quarter circle more faithfully as the partition gets finer.",
+            detailTitle: "Riemann-style area",
+            details: [
+              rowHtml("blue", "Slice width", (1 / data.slices).toFixed(5)),
+              rowHtml("green", "Quarter area", (data.estimate / 4).toFixed(12))
+            ],
+            copy1: "A unit circle has area π, so a quarter circle has area π/4. That turns an area approximation directly into a π approximation.",
+            copy2: "Visually this is one of the clearest calculus-flavored methods because the error literally appears as leftover gaps between bars and arc.",
+            viz: renderAreaViz(data.slices)
+          };
+        }
+        case "fourier": {
+          const data = getFourierData();
+          return {
+            title: "Fourier-Basel viewpoint",
+            subtitle: "Build π from harmonic energy using √(6 Σ 1/n²), with a wave motif to tie it back to periodic structure.",
+            estimate: data.estimate,
+            progressLabel: "Harmonics",
+            progressValue: data.n.toLocaleString(),
+            explanation: "This is less geometric and more structural: π emerges from the behavior of harmonics and the famous Basel sum.",
+            detailTitle: "Harmonic energy",
+            details: [
+              rowHtml("green", "Σ 1/n²", data.sum.toFixed(12)),
+              rowHtml("pink", "Wave phase", data.phase.toFixed(2))
+            ],
+            copy1: "Euler’s Basel result gives π²/6 = Σ 1/n². Taking a square root turns the accumulated harmonic energy into π.",
+            copy2: "The wave trace is there to keep the harmonic interpretation visible, even though the estimate itself comes from the summation bars below.",
+            viz: renderFourierViz(data.n, data.sum, data.phase)
+          };
+        }
+        default:
+          return null;
+      }
+    }
+
+    function render() {
+      const snap = snapshot();
+      const estimate = snap.estimate;
+      const error = Number.isFinite(estimate) && estimate > 0 ? Math.abs(estimate - TRUE_PI) : TRUE_PI;
+      const decimals = estimate > 0 ? Math.max(0, stableDigits(estimate) - 2) : 0;
+      const pct = Math.min(100, (decimals / 20) * 100);
+      const methodMeta = currentMethodMeta();
+
+      el.methodTitle.textContent = snap.title;
+      el.methodSubtitle.textContent = snap.subtitle;
+      el.stat1Label.textContent = snap.progressLabel;
+      el.stat1Value.textContent = snap.progressValue;
+      el.estimateValue.textContent = estimate > 0 ? estimate.toFixed(12) : "0.000000000000";
+      el.errorValue.textContent = error.toExponential(2);
+      el.explanation.textContent = snap.explanation;
+      el.accuracyFill.style.width = `${pct}%`;
+      el.accuracyCount.textContent = String(decimals);
+      el.speedValue.textContent = `${state.speed.toFixed(1)}x`;
+      el.playToggle.textContent = state.running ? "Pause" : "Play";
+      el.detailTitle.textContent = snap.detailTitle;
+      el.detailList.innerHTML = snap.details.join("");
+      el.detailCopy1.textContent = snap.copy1;
+      el.detailCopy2.textContent = snap.copy2;
+      el.confirmedValue.textContent = String(decimals);
+      el.viz.innerHTML = snap.viz;
+      el.methodMeta.innerHTML = [
+        `<span class="meta-pill">${methodMeta.family}</span>`,
+        `<span class="meta-pill">${methodMeta.vibe}</span>`,
+        `<span class="meta-pill">${decimals} stable decimals</span>`
+      ].join("");
+      el.tourToggle.textContent = state.tour ? "Stop tour" : "Start tour";
+      renderDigits(estimate);
+      setMethodHash();
+
+      Array.from(el.methodStrip.querySelectorAll(".method-btn")).forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.method === state.method);
+      });
+    }
+
+    function tickArchimedes() {
+      const s = state.methods.archimedes;
+      const max = 18;
+      if (s.stepIndex < max) {
+        s.stepIndex += 1;
+      }
+    }
+
+    function tickBuffon() {
+      const s = state.methods.buffon;
+      const batch = Math.max(12, Math.round(26 * state.speed));
+      const spacing = 46;
+      const length = 34;
+      for (let i = 0; i < batch; i += 1) {
+        const cx = 100 + Math.random() * 360;
+        const cy = 100 + Math.random() * 360;
+        const theta = Math.random() * Math.PI;
+        const dx = Math.cos(theta) * length / 2;
+        const dy = Math.sin(theta) * length / 2;
+        const y1 = cy - dy;
+        const y2 = cy + dy;
+        const lineA = Math.floor((y1 - 90) / spacing);
+        const lineB = Math.floor((y2 - 90) / spacing);
+        const crosses = lineA !== lineB;
+        s.needles.push({ x1: cx - dx, y1, x2: cx + dx, y2, crosses });
+        s.total += 1;
+        if (crosses) s.crossings += 1;
+      }
+      if (s.needles.length > 280) {
+        s.needles = s.needles.slice(-280);
+      }
+    }
+
+    function tickLeibniz() {
+      const s = state.methods.leibniz;
+      const batch = Math.max(1, Math.round(4 * state.speed));
+      for (let i = 0; i < batch; i += 1) {
+        const term = ((s.n % 2 === 0) ? 1 : -1) / (2 * s.n + 1);
+        s.sum += term;
+        s.n += 1;
+        s.history.push(4 * s.sum);
+      }
+      if (s.history.length > 120) {
+        s.history = s.history.slice(-120);
+      }
+    }
+
+    function tickNilakantha() {
+      const s = state.methods.nilakantha;
+      const batch = Math.max(1, Math.round(3 * state.speed));
+      for (let i = 0; i < batch; i += 1) {
+        const base = 2 * s.n;
+        const sign = s.n % 2 === 1 ? 1 : -1;
+        s.value += sign * (4 / (base * (base + 1) * (base + 2)));
+        s.n += 1;
+        s.history.push(s.value);
+      }
+      if (s.history.length > 120) {
+        s.history = s.history.slice(-120);
+      }
+    }
+
+    function factorial(n) {
+      let result = 1;
+      for (let i = 2; i <= n; i += 1) result *= i;
+      return result;
+    }
+
+    function tickRamanujan() {
+      const s = state.methods.ramanujan;
+      if (s.k > 8) return;
+      const k = s.k;
+      const term = (factorial(4 * k) * (1103 + 26390 * k)) / ((factorial(k) ** 4) * (396 ** (4 * k)));
+      s.sum += term;
+      s.k += 1;
+      const constant = (2 * Math.sqrt(2)) / 9801;
+      s.history.push(1 / (constant * s.sum));
+    }
+
+    function tickContinued() {
+      const s = state.methods.continued;
+      if (s.depth < PI_CF.length) {
+        s.depth += 1;
+      }
+    }
+
+    function tickArea() {
+      const s = state.methods.area;
+      if (s.slices < 16384) {
+        s.slices *= 2;
+      }
+    }
+
+    function tickFourier() {
+      const s = state.methods.fourier;
+      const batch = Math.max(1, Math.round(4 * state.speed));
+      for (let i = 0; i < batch; i += 1) {
+        s.n += 1;
+        s.sum += 1 / (s.n * s.n);
+      }
+      s.phase += 0.07 * state.speed;
+    }
+
+    function tick() {
+      if (!state.running) return;
+      switch (state.method) {
+        case "archimedes":
+          tickArchimedes();
+          break;
+        case "buffon":
+          tickBuffon();
+          break;
+        case "leibniz":
+          tickLeibniz();
+          break;
+        case "nilakantha":
+          tickNilakantha();
+          break;
+        case "ramanujan":
+          tickRamanujan();
+          break;
+        case "continued":
+          tickContinued();
+          break;
+        case "area":
+          tickArea();
+          break;
+        case "fourier":
+          tickFourier();
+          break;
+      }
+      if (state.tour) {
+        cycleMethod();
+      }
+      render();
+      schedule();
+    }
+
+    function schedule() {
+      window.clearTimeout(state.timer);
+      if (!state.running) return;
+      let delay = 420;
+      if (state.method === "buffon") delay = 160;
+      if (state.method === "ramanujan") delay = 900 / state.speed;
+      if (state.method === "archimedes" || state.method === "area" || state.method === "continued") {
+        delay = 980 / state.speed;
+      }
+      if (state.method === "fourier") delay = 220;
+      if (state.method === "leibniz" || state.method === "nilakantha") delay = 260;
+      if (state.tour) delay = 2200 / state.speed;
+      state.timer = window.setTimeout(tick, delay);
+    }
+
+    function setMethod(methodId, options = {}) {
+      state.method = methodId;
+      if (!options.keepTour) {
+        state.tour = false;
+      }
+      render();
+      schedule();
+    }
+
+    function buildMethodButtons() {
+      el.methodStrip.innerHTML = METHODS.map((method) => (
+        `<button class="method-btn${method.id === state.method ? " active" : ""}" data-method="${method.id}" type="button">${method.label}</button>`
+      )).join("");
+      Array.from(el.methodStrip.querySelectorAll(".method-btn")).forEach((btn) => {
+        btn.addEventListener("click", () => setMethod(btn.dataset.method));
+      });
+    }
+
+    buildMethodButtons();
+
+    if (window.location.hash) {
+      const requested = window.location.hash.replace("#", "");
+      if (METHODS.some((method) => method.id === requested)) {
+        state.method = requested;
+      }
+    }
+
+    el.playToggle.addEventListener("click", () => {
+      state.running = !state.running;
+      render();
+      schedule();
+    });
+
+    el.tourToggle.addEventListener("click", () => {
+      state.tour = !state.tour;
+      state.running = true;
+      render();
+      schedule();
+    });
+
+    el.resetBtn.addEventListener("click", () => {
+      const current = state.method;
+      resetState(current);
+      state.running = true;
+      buildMethodButtons();
+      render();
+      schedule();
+    });
+
+    el.speed.addEventListener("input", (event) => {
+      state.speed = Number(event.target.value);
+      render();
+      schedule();
+    });
+
+    el.surpriseBtn.addEventListener("click", () => {
+      const choices = METHODS.filter((method) => method.id !== state.method);
+      const next = choices[Math.floor(Math.random() * choices.length)];
+      setMethod(next.id);
+      showToast(`Jumped to ${next.label}`);
+    });
+
+    el.shareBtn.addEventListener("click", async () => {
+      const method = currentMethodMeta();
+      const url = `${window.location.origin}${window.location.pathname}#${state.method}`;
+      const payload = {
+        title: `Pi Atlas: ${method.label}`,
+        text: `A Pi Day interactive showing ${method.label} as a way to approximate π.`,
+        url
+      };
+      try {
+        if (navigator.share) {
+          await navigator.share(payload);
+          showToast("Share sheet opened");
+          return;
+        }
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("Link copied to clipboard");
+      } catch (error) {
+        showToast(url);
+      }
+    });
+
+    render();
+    schedule();
+  </script>
+</body>
+</html>
