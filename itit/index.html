@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Staffing Year</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a planning board — a fixed info column on the left, one shared calendar track on the right,
+   month lines and study-period bands running through every row so all courses and people line up in time. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --ink: #131820;
+  --ink-2: #4a5362;
+  --muted: #7b8494;
+  --line: #dfe3ea;
+  --line-2: #c9cfd9;
+  --accent: #1d5c8f;
+  --accent-soft: #dce9f5;
+  --ok: #1f7a4f; --ok-bg: #e2f3ea;
+  --warn: #9a6200; --warn-bg: #fbefd6;
+  --crit: #b3352f; --crit-bg: #fae3e1;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948; --s9: #8a919c;
+  --h0: #eef1f5; --h1: #cde2fb; --h2: #9ec5f4; --h3: #5598e7; --h4: #2a78d6; --h5: #184f95;
+  --band: rgba(29, 92, 143, 0.045);
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --info-w: clamp(178px, 27vw, 300px);
+  --track-min: 760px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1319; --surface: #161b23; --surface-2: #1d232d; --ink: #e9edf3; --ink-2: #b1b9c6; --muted: #848d9b;
+    --line: #262d38; --line-2: #343c49; --accent: #7cb4e6; --accent-soft: #1c3249;
+    --ok: #5fc792; --ok-bg: #173226; --warn: #e6b04f; --warn-bg: #3a2c12; --crit: #ef7d76; --crit-bg: #3d1d1b;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s9: #737b87;
+    --h0: #1d232d; --h1: #13355e; --h2: #1c5cab; --h3: #2a78d6; --h4: #5598e7; --h5: #9ec5f4;
+    --band: rgba(124, 180, 230, 0.05);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1319; --surface: #161b23; --surface-2: #1d232d; --ink: #e9edf3; --ink-2: #b1b9c6; --muted: #848d9b;
+  --line: #262d38; --line-2: #343c49; --accent: #7cb4e6; --accent-soft: #1c3249;
+  --ok: #5fc792; --ok-bg: #173226; --warn: #e6b04f; --warn-bg: #3a2c12; --crit: #ef7d76; --crit-bg: #3d1d1b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s9: #737b87;
+  --h0: #1d232d; --h1: #13355e; --h2: #1c5cab; --h3: #2a78d6; --h4: #5598e7; --h5: #9ec5f4;
+  --band: rgba(124, 180, 230, 0.05);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { color-scheme: light; }
+body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1500px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 48px; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* Header */
+header.top { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: flex-end; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.brand { min-width: 0; }
+.eyebrow { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.05; margin: 4px 0 6px; letter-spacing: -0.015em; text-wrap: balance; }
+.source { color: var(--ink-2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.source .tag { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; background: var(--warn-bg); color: var(--warn); }
+.source .tag.real { background: var(--ok-bg); color: var(--ok); }
+.drop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1.5px dashed var(--line-2); border-radius: 10px; padding: 10px 12px 10px 14px; background: var(--surface); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop p { margin: 0; font-size: 13px; color: var(--ink-2); max-width: 34ch; }
+.btn { border: 1px solid var(--line-2); background: var(--surface); border-radius: 7px; padding: 7px 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn.primary:hover { filter: brightness(1.08); color: var(--surface); }
+.btn.link { border: 0; background: none; padding: 4px 2px; color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.err { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--crit-bg); color: var(--crit); font-size: 13px; }
+
+/* Summary strip */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 18px 0; }
+.kpi { background: var(--surface); padding: 12px 14px; min-width: 0; }
+.kpi .k { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.kpi .v { font-family: var(--font-data); font-size: 21px; font-weight: 500; margin-top: 2px; }
+.kpi .s { font-size: 12px; color: var(--ink-2); }
+.kpi.alert .v { color: var(--crit); }
+.kpi button.s { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 9px; padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: none; padding: 7px 14px; border-radius: 7px; font-weight: 600; cursor: pointer; color: var(--ink-2); }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.field { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.field input[type="search"], .field select { border: 1px solid var(--line-2); background: var(--surface); border-radius: 7px; padding: 6px 9px; min-width: 0; }
+.field input[type="search"] { width: 220px; max-width: 60vw; }
+.spacer { flex: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); margin: 0 0 10px; align-items: center; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+.legend .heat { display: inline-flex; gap: 2px; margin: 0 4px; vertical-align: -1px; }
+.legend .heat i { width: 16px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* Timeline board */
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.scroller { overflow-x: auto; }
+.tl { position: relative; min-width: calc(var(--info-w) + var(--track-min)); }
+.grid-layer { position: absolute; top: 0; bottom: 0; left: var(--info-w); right: 0; pointer-events: none; }
+.grid-layer .pband { position: absolute; top: 0; bottom: 0; background: var(--band); }
+.grid-layer .mline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.row { display: grid; grid-template-columns: var(--info-w) 1fr; position: relative; }
+.row > .info { position: sticky; left: 0; z-index: 2; background: var(--surface); border-right: 1px solid var(--line); padding: 10px 12px 10px 14px; min-width: 0; }
+.row > .track { position: relative; min-width: 0; }
+.axis { border-bottom: 1px solid var(--line); }
+.axis .info { font-size: 11px; color: var(--muted); letter-spacing: .07em; text-transform: uppercase; font-weight: 600; display: flex; align-items: flex-end; padding-block: 8px; }
+.axis .track { height: 46px; }
+.axis .plabel { position: absolute; top: 6px; font-size: 11px; font-weight: 600; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 6px; }
+.axis .mlabel { position: absolute; bottom: 6px; font-size: 11px; color: var(--ink-2); padding-left: 5px; white-space: nowrap; }
+.axis .mlabel b { font-weight: 600; color: var(--ink); }
+.sec-head { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.sec-head > .info { background: var(--surface-2); padding-block: 8px; display: flex; gap: 8px; align-items: center; }
+.sec-head .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.sec-head .t { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sec-head .track { display: flex; align-items: center; padding-left: 10px; font-size: 12px; color: var(--ink-2); gap: 14px; }
+
+.crow { border-bottom: 1px solid var(--line); }
+.crow:hover > .info, .prow:hover > .info { background: var(--surface-2); }
+.crow > .info { cursor: pointer; }
+.crow .code { font-family: var(--font-data); font-size: 12px; font-weight: 500; color: var(--ink-2); }
+.crow .cname { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.crit { background: var(--crit-bg); color: var(--crit); }
+.pill.none { background: var(--surface-2); color: var(--muted); }
+.pill svg { width: 10px; height: 10px; }
+.crow .track { padding-block: 10px; min-height: 64px; }
+.bar { position: absolute; top: 10px; height: 24px; border-radius: 4px; background: color-mix(in oklab, var(--sc) 20%, var(--surface)); border-left: 3px solid var(--sc); display: flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 12px; color: var(--ink); overflow: hidden; white-space: nowrap; cursor: pointer; }
+.bar .fill { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--sc); opacity: .9; }
+.bar .d { color: var(--ink-2); font-family: var(--font-data); font-size: 11px; }
+.team { display: flex; flex-wrap: wrap; gap: 4px; }
+.team.right { justify-content: flex-end; }
+.chip { display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid var(--line-2); background: var(--surface); border-radius: 6px; padding: 2px 7px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--accent); }
+.chip .n { font-weight: 600; }
+.chip .p, .chip .h { font-family: var(--font-data); font-size: 11px; color: var(--ink-2); }
+.chip .h { color: var(--ink); }
+.chip .cc { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); align-self: center; }
+.chip.zero { opacity: .6; }
+.chip.open { border-style: dashed; border-color: var(--warn); background: var(--warn-bg); color: var(--warn); cursor: default; }
+.chip.open .p, .chip.open .h { color: var(--warn); }
+.chip.asst { background: var(--surface-2); }
+.flash { animation: flash 1.6s ease-out 1; }
+@keyframes flash { 0%, 30% { box-shadow: inset 0 0 0 2px var(--accent); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
+
+.detail { grid-column: 1 / -1; position: sticky; left: 0; width: min(100%, 100vw - 32px); background: var(--surface-2); border-top: 1px dashed var(--line-2); padding: 12px 14px 14px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 14px 28px; }
+.detail table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.detail th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 4px 8px 6px 0; border-bottom: 1px solid var(--line-2); }
+.detail td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.detail td.r, .detail th.r { text-align: right; }
+.detail tfoot td { font-weight: 600; border-bottom: 0; }
+.detail dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.detail .comment { grid-column: 1 / -1; font-size: 13px; padding: 8px 10px; border-left: 3px solid var(--line-2); background: var(--surface); border-radius: 0 6px 6px 0; }
+.share { display: inline-block; width: 60px; height: 6px; border-radius: 3px; background: var(--line); vertical-align: middle; margin-right: 6px; overflow: hidden; }
+.share i { display: block; height: 100%; background: var(--accent); }
+
+/* People */
+.prow { border-bottom: 1px solid var(--line); }
+.prow > .info { cursor: pointer; }
+.prow .pname { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.prow .pname span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .tot { font-family: var(--font-data); font-weight: 500; white-space: nowrap; }
+.meter { height: 6px; border-radius: 3px; background: var(--line); margin: 6px 0 4px; position: relative; overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; }
+.prow .track { padding-block: 8px 10px; }
+.heat { position: relative; height: 12px; margin-bottom: 6px; }
+.heat .w { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.lane { position: relative; height: 22px; margin-bottom: 3px; }
+.lane .bar { top: 0; height: 22px; font-size: 11.5px; }
+.lane .bar.co { background: transparent; border: 1px dashed var(--sc); border-left: 3px solid var(--sc); }
+.dept .info h3 { margin: 0; font-size: 13px; }
+.dept .info p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.dept .track { height: 140px; }
+.colbar { position: absolute; bottom: 22px; background: var(--accent); border-radius: 3px 3px 0 0; opacity: .85; }
+.colbar:hover { opacity: 1; }
+.ygrid { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line-2); font-size: 10px; color: var(--muted); font-family: var(--font-data); }
+.ygrid span { position: absolute; right: 4px; top: -14px; background: var(--surface); padding: 0 3px; }
+.hit { position: absolute; top: 0; bottom: 0; }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+#tip { position: fixed; z-index: 50; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.4; padding: 7px 9px; border-radius: 6px; max-width: 300px; white-space: pre-line; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+#tip b { font-weight: 600; }
+.foot { margin-top: 16px; font-size: 12px; color: var(--muted); max-width: 90ch; }
+.foot p { margin: 0 0 6px; }
+@media (max-width: 720px) {
+  .detail { grid-template-columns: 1fr; }
+  .drop p { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Teaching staffing · calendar year view</div>
+      <h1 id="title">Course Staffing Year</h1>
+      <div class="source" id="source"></div>
+    </div>
+    <div class="drop" id="drop">
+      <p>Drop the staffing workbook (.xlsx) here. It is read in your browser and is not uploaded anywhere.</p>
+      <label class="btn primary" for="file">Choose file…</label>
+      <input type="file" id="file" accept=".xlsx,.xlsm,.xls" hidden>
+      <button class="btn link" id="sample" type="button" hidden>Show example data</button>
+      <a class="btn link" href="example-staffing-2027.xlsx" download>Example workbook</a>
+    </div>
+  </header>
+  <div class="err" id="err" hidden></div>
+
+  <section class="kpis" id="kpis" aria-label="Summary"></section>
+
+  <div class="controls">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-courses" aria-selected="true" data-view="courses">Courses</button>
+      <button role="tab" id="tab-people" aria-selected="false" data-view="people">People</button>
+    </div>
+    <label class="field"><span>Search</span><input type="search" id="q" placeholder="Course, code or person"></label>
+    <label class="field"><span>Programme</span><select id="sec"></select></label>
+    <span class="spacer"></span>
+    <label class="field" id="f-attn"><input type="checkbox" id="attn"> Needs attention only</label>
+    <label class="field"><span>Sort</span><select id="sort"></select></label>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="board"><div class="scroller"><div class="tl" id="board"></div></div></div>
+  <div class="foot" id="foot"></div>
+</div>
+<div id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const MOCK_ROWS = [[null,null,"Courses offered by the Example Department 2027 (MOCK DATA)",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,"Digital Systems, First-cycle",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["Verks","Program","Code","Name","Credits","Freest.","Period(s)","Start","End","Programme","Valfri","Exchange","Viktningsmodell för kurser","Förslag 2027 % av HTE","Förslag 2027 (Number of working hours per course)"," Budget 2027 % av HTE enl programansvarig/ avd chef"," Budget 2027 (Number of working hours per course) enl programansvarig/avd chef","Bemanning\nkoll att blir\n100%","The name of the course coordinator\n(First name Initital letter last name)","Teacher 1 \n(Name of the teacher incl. course coordinator)\n","% av kursen för lärare 1","WH lärare 1","Teacher 2\n","% av kursen för lärare 2","WH lärare 2","Teacher 3\n","% av kursen för lärare 3","WH lärare 3","Teacher 4\n","% av kursen för lärare 4","WH lärare 4","Teacher 5\n","% av kursen för lärare 5","WH lärare 5","Teacher 6\n","% av kursen för lärare 6","WH lärare 6","Studentassistent\n(first name, last name)","% av kursen för studentassistent","WH studentassistent","Comments",null,null,null,null],[1,1,"Digital Systems, First-cycle",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS101","Digitala samhällsstrukturer",15," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},"N1DIS"," ","x",1,30,510.0,30,510.0,100,"Axel G","Axel G",100,510.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"Many hands-on lab sessions, may need more hours.",null,null,null,null],["10371110","DIS","DIS105","Användarcentrerad design",7.5," ","2",{"d":"2027-11-04"},{"d":"2028-01-16"},"N1DIS","x"," ",4,15,255.0,15,255.0,100,"Erik L","Erik L",100,255.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS110","Programmering och systembygge",15," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N1DIS","x","x",1,30,510.0,30,510.0,100,"Sara M","Sara M",100,510.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS115","Agil produktutveckling",15," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N1DIS","x"," ",4,28,476.0,28,476.0,90,"Karim H","Karim H",90,428.40000000000003,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS120","Organisation och IT",15," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},"N1DIS"," ","x",1,28,476.0,28,476.0,100,"Erik L","Erik L",100,476.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS125","IT-strategi och styrning",15," ","2",{"d":"2027-11-04"},{"d":"2028-01-16"},"N1DIS"," ","x",2,28,476.0,28,476.0,100,"Axel G","Axel G",100,476.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS130","Maskininlärning i praktiken",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N1DIS","x"," ",1,15,255.0,15,255.0,100,"Tove E","Tove E",60,153.0,"Wilma O",40,102.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS135","Informationssäkerhet",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N1DIS"," "," ",4,15,255.0,15,255.0,100,"Rami Z","Rami Z",100,255.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"Årsarbetstid lärare",1700,null],["10371110","DIS","DIS140","Dataanalys för verksamheter",15," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N1DIS","x","x",2,30,510.0,30,510.0,100,"Tove E","Tove E",70,357.0,"Ebba J",30,153.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS","DIS150","Kandidatarbete",15," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N1DIS"," "," ",2,8,136.0,8,136.0,100,"Tove E","Tove E",100,136.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371110","DIS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Digital Management, Second-cycle",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA301","Platforms",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-09-30"},"N2DMS","x","x",2,15,255.0,15,255.0,100,"Rami Z","Rami Z",100,255.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA305","Data Infrastructures",7.5," ","1",{"d":"2027-10-01"},{"d":"2027-11-03"},"N2DMS"," ","x",2,15,255.0,15,255.0,100,"Nora A","Nora A",70,178.5,"Lina K",10,25.5,"Samir Q",10,25.5,"Leo R",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA310","Applied AI",7.5," ","2",{"d":"2027-11-04"},{"d":"2027-12-08"},"N2DMS"," ","x",2,15,255.0,15,255.0,100,"Hugo D","Hugo D",50,127.5,"Rami Z",30,76.5,"Samir Q",20,51.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA315","Organizing Digital Work",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-02-18"},"N2DMS"," "," ",2,17,289.0,17,289.0,100,"Alma Y","Alma Y",50,144.5,"Felix C",50,144.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA320","Digital Governance",7.5," ","3",{"d":"2027-02-19"},{"d":"2027-03-29"},"N2DMS","x","x",2,15,255.0,15,255.0,100,"Ida F","Ida F",70,178.5,"Felix C",20,51.0,"Hugo D",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA325","Strategy",7.5," ","4",{"d":"2027-03-30"},{"d":"2027-05-02"},"N2DMS","x"," ",4,17,289.0,17,289.0,100,"Samir Q","Samir Q",100,289.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA330","Project Work",7.5," ","4",{"d":"2027-05-03"},{"d":"2027-06-06"},"N2DMS"," ","x",2,15,255.0,15,255.0,100,"Karim H","Karim H",70,178.5,"Ida F",20,51.0,"Samir Q",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA335","Research Methods",7.5," ","2",{"d":"2027-12-09"},{"d":"2028-01-16"},"N2DMS","x","x",2,17,289.0,null,0.0,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS","DMA340","Master Thesis",30," ","3 + 4",{"d":"2027-01-18"},{"d":"2027-06-06"},"N2DMS","x","x",2,8,136.0,8,136.0,100,"Sara M","Sara M",100,136.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371120","DMS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Cognition & Behaviour",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS001","Perception och uppmärksamhet",7.5," ","1",{"d":"2027-10-01"},{"d":"2027-11-03"},"N1CGS"," "," ",2,15,255.0,15,255.0,100,"Samir Q","Samir Q",100,255.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS010","Medvetandefilosofi",7.5," ","2",{"d":"2027-11-04"},{"d":"2028-01-16"},"N1CGS"," ","x",2,13,221.0,13,221.0,100,"Lina K","Lina K",100,221.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS020","Språk och kognition",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N1CGS","x","x",2,17,289.0,17,289.0,100,"Clara V","Clara V",50,144.5,"Rami Z",30,86.7,"Wilma O",20,57.800000000000004,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS030","Introduktion till kognitionsvetenskap",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-09-30"},"N1CGS","x","x",2,15,255.0,15,255.0,100,"Ida F","Ida F",80,204.0,"Johan P",20,51.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS040","Experimentell metod",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-09-30"},"N1CGS"," "," ",1,17,289.0,17,289.0,100,"Ebba J","Ebba J",100,289.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS050","Neurovetenskap",7.5," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N1CGS"," ","x",4,15,255.0,15,255.0,90,"Johan P / Anna B?","Johan P",90,229.5,"Anna B",0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS060","Beslutsfattande",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N1CGS"," "," ",2,13,221.0,13,221.0,100,"Anna B","Anna B",60,132.6,"NN",40,88.4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS","CGS070","Kandidatuppsats",15," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N1CGS","x"," ",2,8,136.0,8,136.0,100,"Rami Z","Rami Z",100,136.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371150","CGS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Media & Communication",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS500","Communication Theory",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},"N2MCS","x"," ",1,15,255.0,15,255.0,100,"Samir Q","Samir Q",70,178.5,"Ebba J",10,25.5,"Viktor N",10,25.5,"Sara M",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS505","Networked Publics",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},"N2MCS"," ","x",2,15,255.0,15,255.0,100,"Alma Y","Alma Y",90,229.5,"Oskar W",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS510","Strategic Communication",7.5," ","2",{"d":"2027-11-04"},{"d":"2028-01-16"},"N2MCS"," ","x",2,15,255.0,15,255.0,100,"Axel G","Axel G",80,204.0,"?",20,51.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS520","Qualitative Methods",7.5," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"N2MCS","x","x",2,15,255.0,15,255.0,100,"Greta I","Greta I",100,255.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS530","Quantitative Methods",7.5," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"N2MCS","x"," ",4,15,255.0,15,255.0,100,"Adam X","Adam X",70,178.5,"Greta I",10,25.5,"Maja T",10,25.5,"Karim H",10,25.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS560","Internship",30," ","1 + 2",{"d":"2027-08-30"},{"d":"2028-01-16"},"N2MCS"," "," ",4,8,136.0,8,136.0,100,"Hugo D","Hugo D",50,68.0,"Noah U",50,68.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS","MCS570","Degree Project",30," ","3 + 4",{"d":"2027-01-18"},{"d":"2027-06-06"},"N2MCS","x","x",2,8,136.0,8,136.0,100,"Alma Y","Alma Y",100,136.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371140","MCS",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Human-AI Interaction",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI","HAI400","Foundations of Human-AI Interaction",15," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},"T2HAI","x","x",2,28,476.0,28,476.0,100,"Sara M","Sara M",100,476.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI","HAI405","Designing with AI",15," ","2",{"d":"2027-11-04"},{"d":"2028-01-16"},"T2HAI"," "," ",2,30,510.0,30,510.0,100,"Nora A","Nora A",90,510.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"Student Assistant A",10,51.0,null,null,null,null,null],["10371160","HAI","HAI410","Minds and Machines",15," ","3",{"d":"2027-01-18"},{"d":"2027-03-29"},"T2HAI","x"," ",2,30,510.0,30,510.0,100,"Hugo D","Hugo D",70,357.0,"Adam X",20,102.0,"Wilma O",10,51.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI","HAI415","Responsible AI",15," ","4",{"d":"2027-03-30"},{"d":"2027-06-06"},"T2HAI","x"," ",2,30,510.0,30,510.0,100,"Leo R","Leo R",100,510.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI","HAI440","Master's Thesis",30," ","3 + 4",{"d":"2027-01-18"},{"d":"2027-06-06"},"T2HAI"," ","x",2,8,136.0,8,136.0,100,"Noah U","Noah U",60,81.6,"Sara M",40,54.400000000000006,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["10371160","HAI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Free-standing courses, First-cycle",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,"Code","Name","Credits","Free st.","Period(s)","Start","End","Programme","Valfri","Exchange",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI","FRI140","Sommarkurs: Digital kultur",15," ","sommar",{"d":"2027-06-07"},{"d":"2027-08-15"},null," "," ",2,30,510.0,30,510.0,100,"Ebba J","Ebba J",60,306.0,"Adam X",40,204.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI","FRI142","Programmering för nybörjare",7.5," ","1",{"d":"2027-08-30"},{"d":"2027-11-03"},null,"x","x",2,13,221.0,13,221.0,100,"Axel G","Axel G",50,110.5,"Lina K",50,110.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI","FRI146","AI i skolan",7.5," ","1 + 2",{"d":"2027-08-30"},{"d":"2028-01-16"},null," "," ",2,8,136.0,8,136.0,100,"Maja T","Maja T",70,95.19999999999999,"Anna B",10,13.600000000000001,"Elin S",10,13.600000000000001,"Viktor N",10,13.600000000000001,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["FRI","FRI",null,null,null,null,null,null,null,null,null,null,null,0,0,null,0,0,null,null,null,0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,"Totalt:",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]];
+const DAY = 86400000;
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const str = v => v == null ? "" : String(v).replace(/ /g, " ").trim();
+const num = v => {
+  if (typeof v === "number") return v;
+  const s = str(v).replace(",", ".").replace("%", "");
+  return s && !isNaN(+s) ? +s : NaN;
+};
+const isX = v => /^(x|ja|yes|y|1|true)$/i.test(str(v));
+const fmtH = h => Math.round(h).toLocaleString("en-GB") + " h";
+const fmtP = p => (Math.round(p * 10) / 10).toLocaleString("en-GB") + "%";
+const UNASSIGNED = /^(\?+|nn|n\.?\s?n\.?|tbd|tba|tbc|vakant|obemannat|unassigned|-+)$/i;
+
+function toDay(v) {
+  if (v == null || v === "") return null;
+  if (v instanceof Date) { const t = new Date(v.getTime() + 12 * 3600e3); return Math.floor(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) / DAY); }
+  if (typeof v === "number") return v > 20000 && v < 80000 ? Math.round(v) - 25569 : null;
+  if (typeof v === "object" && v.d) return toDay(v.d);
+  const s = str(v);
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return Date.UTC(+m[1], m[2] - 1, +m[3]) / DAY;
+  m = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})/);
+  if (m) return Date.UTC(+m[3], m[2] - 1, +m[1]) / DAY;
+  return null;
+}
+const dayDate = d => new Date(d * DAY);
+function fmtD(d, withYear) { const t = dayDate(d); return t.getUTCDate() + " " + MONTHS[t.getUTCMonth()] + (withYear ? " " + t.getUTCFullYear() : ""); }
+function fmtRange(a, b) { const ya = dayDate(a).getUTCFullYear(), yb = dayDate(b).getUTCFullYear(); return fmtD(a, ya !== yb) + " – " + fmtD(b, true); }
+const weekStart = d => d - (((d + 3) % 7) + 7) % 7;
+function isoWeek(d) { const th = weekStart(d) + 3; const y = dayDate(th).getUTCFullYear(); return 1 + Math.floor((th - Date.UTC(y, 0, 1) / DAY) / 7); }
+
+/* ---------- Parsing: header-driven, so column moves and extra teacher slots still work ---------- */
+function findHeader(aoa) {
+  for (let r = 0; r < Math.min(aoa.length, 60); r++) {
+    const cells = (aoa[r] || []).map(str);
+    if (cells.some(c => /^code$/i.test(c)) && cells.some(c => /^teacher\s*1\b/i.test(c))) return { row: r, cells };
+  }
+  return null;
+}
+function parseWorkbook(wb) {
+  for (const name of wb.SheetNames) {
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: null });
+    const h = findHeader(aoa);
+    if (h) return parseRows(aoa, h, name);
+  }
+  throw new Error('No sheet has a header row with "Code" and "Teacher 1" columns. Check that the course sheet keeps its header row.');
+}
+function parseRows(aoa, h, sheetName) {
+  const cells = h.cells;
+  const find = re => cells.findIndex(c => re.test(c));
+  const col = {
+    prog: find(/^program$/i), code: find(/^code$/i), name: find(/^name$/i), credits: find(/^credits/i),
+    period: find(/^period/i), start: find(/^start/i), end: find(/^end$/i), programme: find(/^programme/i),
+    elective: find(/^valfri|^elective/i), exchange: find(/^exchange/i), weight: find(/viktning|weight/i),
+    propPct: find(/förslag.*%|proposal.*%/i), propH: find(/förslag.*hours|proposal.*hours/i),
+    budPct: find(/budget.*%/i), budH: find(/budget.*hours/i), coord: find(/coordinator/i), comment: find(/^comment/i)
+  };
+  const staffCols = [];
+  cells.forEach((c, i) => {
+    const teacher = /^teacher\s*\d+/i.test(c);
+    const asst = !c.startsWith("%") && /studentassist|student assistant|teaching assistant/i.test(c);
+    if (!teacher && !asst) return;
+    let pct = -1;
+    for (let j = i + 1; j <= i + 2 && j < cells.length; j++) if (cells[j].includes("%")) { pct = j; break; }
+    if (pct >= 0) staffCols.push({ name: i, pct, role: teacher ? "teacher" : "assistant" });
+  });
+  let annual = 1700;
+  outer: for (const row of aoa) {
+    if (!row) continue;
+    for (let i = 0; i < row.length; i++) if (/årsarbetstid|annual working/i.test(str(row[i]))) {
+      for (let j = i + 1; j <= i + 3; j++) { const n = num(row[j]); if (n > 100) { annual = n; break outer; } }
+    }
+  }
+  const sections = [], courses = [];
+  let sec = null;
+  const newSec = title => { sec = { key: "", title, courses: [] }; sections.push(sec); };
+  for (let r = h.row + 1; r < aoa.length; r++) {
+    const row = aoa[r] || [];
+    const code = str(row[col.code]), name = str(row[col.name]);
+    if (!code && !name) continue;
+    if (/^code$/i.test(code)) continue;
+    const start = toDay(row[col.start]), end = toDay(row[col.end]);
+    if (code && !name && start == null) { newSec(code); continue; }
+    if (!sec) newSec("Courses");
+    const budPct = num(row[col.budPct]);
+    const budgetH = !isNaN(budPct) ? budPct * annual / 100 : (num(row[col.budH]) || 0);
+    const coordRaw = str(row[col.coord]);
+    const coordKeys = coordRaw.split(/\s*(?:\/|,|;|&|\boch\b|\band\b)\s*/i).map(s => s.replace(/\?+$/, "").trim()).filter(Boolean).map(s => s.toLowerCase().replace(/\s+/g, " "));
+    const staff = [];
+    for (const sc of staffCols) {
+      const nm = str(row[sc.name]).replace(/\s+/g, " ");
+      const pct = num(row[sc.pct]);
+      if (!nm && !(pct > 0)) continue;
+      const open = !nm || UNASSIGNED.test(nm);
+      const key = open ? "" : nm.toLowerCase();
+      staff.push({ name: open ? "Unassigned" : nm, key, pct: isNaN(pct) ? 0 : pct, hours: (isNaN(pct) ? 0 : pct) / 100 * budgetH, role: sc.role, open, coordinator: !open && coordKeys.includes(key) });
+    }
+    const c = {
+      id: courses.length, sheetRow: r + 1, section: sec, prog: str(row[col.prog]), code, name, credits: num(row[col.credits]),
+      period: str(row[col.period]), start, end, programme: str(row[col.programme]),
+      elective: isX(row[col.elective]), exchange: isX(row[col.exchange]), weight: str(row[col.weight]),
+      propPct: num(row[col.propPct]), budPct: isNaN(budPct) ? null : budPct, budgetH, coordRaw, coordKeys,
+      comment: str(row[col.comment]), staff
+    };
+    c.totalPct = staff.reduce((a, s) => a + s.pct, 0);
+    c.assignedH = staff.filter(s => !s.open).reduce((a, s) => a + s.hours, 0);
+    c.status = statusOf(c);
+    if (!sec.key && c.prog) sec.key = c.prog;
+    sec.courses.push(c); courses.push(c);
+  }
+  const used = sections.filter(s => s.courses.length);
+  used.forEach((s, i) => { s.color = i < 8 ? `var(--s${i + 1})` : "var(--s9)"; s.id = "s" + i; });
+  if (!courses.length) throw new Error("The header row was found, but no course rows below it.");
+  return { sheetName, annual, sections: used, courses, staffSlots: staffCols.length };
+}
+function statusOf(c) {
+  const real = c.staff.filter(s => !s.open && s.pct > 0);
+  const open = c.staff.filter(s => s.open && s.pct > 0);
+  if (!(c.budgetH > 0)) return { cls: "none", label: "No budget", attn: c.staff.length > 0 };
+  if (!real.length) return { cls: "crit", label: "Unstaffed", attn: true };
+  if (open.length) return { cls: "warn", label: "Open slot " + fmtP(open.reduce((a, s) => a + s.pct, 0)), attn: true };
+  if (c.totalPct < 99.5) return { cls: "warn", label: fmtP(c.totalPct) + " staffed", attn: true };
+  if (c.totalPct > 100.5) return { cls: "crit", label: fmtP(c.totalPct) + " over", attn: true };
+  return { cls: "ok", label: "Staffed", attn: false };
+}
+
+/* ---------- Derived model ---------- */
+function buildModel(d) {
+  const dated = d.courses.filter(c => c.start != null && c.end != null && c.end >= c.start);
+  let lo = Math.min(...dated.map(c => c.start)), hi = Math.max(...dated.map(c => c.end));
+  if (!isFinite(lo)) { const y = new Date().getUTCFullYear(); lo = Date.UTC(y, 0, 1) / DAY; hi = Date.UTC(y, 11, 31) / DAY; }
+  const a = dayDate(lo), b = dayDate(hi);
+  d.d0 = Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), 1) / DAY;
+  d.d1 = Date.UTC(b.getUTCFullYear(), b.getUTCMonth() + 1, 1) / DAY - 1;
+  // Study periods: median start/end of single-period courses
+  const groups = {};
+  for (const c of dated) {
+    const p = c.period.toLowerCase();
+    if (!/^\d$|^(sommar|summer)$/.test(p)) continue;
+    (groups[p] ||= []).push(c);
+  }
+  const med = arr => { const s = [...arr].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  d.periods = Object.entries(groups).map(([p, cs]) => ({ label: /^\d$/.test(p) ? "Period " + p : "Summer", short: /^\d$/.test(p) ? "P" + p : "Su", s: med(cs.map(c => c.start)), e: med(cs.map(c => c.end)) }))
+    .sort((x, y) => x.s - y.s);
+  // People
+  const people = new Map();
+  const get = (key, name) => { if (!people.has(key)) people.set(key, { key, name, items: [] }); return people.get(key); };
+  for (const c of d.courses) {
+    for (const s of c.staff) if (!s.open) get(s.key, s.name).items.push({ c, s });
+    for (const k of c.coordKeys) if (!c.staff.some(s => s.key === k) && !UNASSIGNED.test(k)) {
+      const raw = c.coordRaw.split(/\s*(?:\/|,|;|&|\boch\b|\band\b)\s*/i).map(x => x.replace(/\?+$/, "").trim()).find(x => x.toLowerCase().replace(/\s+/g, " ") === k) || k;
+      get(k, raw).items.push({ c, s: { name: raw, key: k, pct: 0, hours: 0, role: "coordinator", coordinator: true, coordOnly: true } });
+    }
+  }
+  d.people = [...people.values()];
+  // Weeks
+  d.weeks = [];
+  for (let w = weekStart(d.d0); w <= d.d1; w += 7) d.weeks.push(w);
+  return d;
+}
+function weekly(items, d) {
+  const out = new Float64Array(d.weeks.length), w0 = d.weeks[0];
+  for (const { c, s } of items) {
+    if (!(s.hours > 0) || c.start == null || c.end == null || c.end < c.start) continue;
+    const rate = s.hours / (c.end - c.start + 1);
+    for (let day = c.start; day <= c.end; day++) { const i = Math.floor((day - w0) / 7); if (i >= 0 && i < out.length) out[i] += rate; }
+  }
+  return out;
+}
+
+/* ---------- State & rendering ---------- */
+const state = { data: null, isSample: true, fileName: "", view: "courses", q: "", sec: "", attn: false, sort: { courses: "sheet", people: "hours" }, open: new Set(), openP: new Set() };
+try { const v = localStorage.getItem("csy-view"); if (v === "people" || v === "courses") state.view = v; } catch (e) {}
+if (location.hash === "#people" || location.hash === "#courses") state.view = location.hash.slice(1);
+
+const X = d => ((d - state.data.d0) / (state.data.d1 - state.data.d0 + 1)) * 100;
+const span = (a, b) => `left:${X(a).toFixed(3)}%;width:${Math.max(0.4, X(b + 1) - X(a)).toFixed(3)}%`;
+
+function load(data, opts) {
+  state.data = buildModel(data);
+  state.isSample = opts.sample; state.fileName = opts.fileName || "";
+  state.open.clear(); state.openP.clear(); state.sec = ""; state.q = ""; $("#q").value = "";
+  $("#err").hidden = true;
+  $("#sample").hidden = opts.sample;
+  const sel = $("#sec");
+  sel.innerHTML = `<option value="">All programmes</option>` + data.sections.map(s => `<option value="${s.id}">${esc(s.title)}</option>`).join("");
+  renderAll();
+}
+function renderSource() {
+  const d = state.data;
+  $("#source").innerHTML = state.isSample
+    ? `<span class="tag">Example data</span><span>Invented courses and names in the same layout as the staffing workbook. Choose your file to see the real plan.</span>`
+    : `<span class="tag real">Your file</span><span>${esc(state.fileName)} · sheet “${esc(d.sheetName)}” · ${d.courses.length} courses · annual working time ${d.annual.toLocaleString("en-GB")} h</span>`;
+}
+function filtered() {
+  const d = state.data, q = state.q.toLowerCase();
+  return d.sections.filter(s => !state.sec || s.id === state.sec).map(s => {
+    let cs = s.courses.filter(c => !q || (c.code + " " + c.name + " " + c.coordRaw + " " + c.staff.map(x => x.name).join(" ")).toLowerCase().includes(q));
+    if (state.attn) cs = cs.filter(c => c.status.attn);
+    if (state.sort.courses === "start") cs = [...cs].sort((a, b) => (a.start ?? 1e9) - (b.start ?? 1e9) || a.end - b.end);
+    if (state.sort.courses === "hours") cs = [...cs].sort((a, b) => b.budgetH - a.budgetH);
+    return { s, cs };
+  }).filter(g => g.cs.length);
+}
+function renderKpis() {
+  const d = state.data;
+  const cs = d.courses.filter(c => !state.sec || c.section.id === state.sec);
+  const bud = cs.reduce((a, c) => a + c.budgetH, 0), asg = cs.reduce((a, c) => a + c.assignedH, 0);
+  const ppl = new Set(); cs.forEach(c => c.staff.forEach(s => !s.open && s.hours > 0 && ppl.add(s.key)));
+  const attn = cs.filter(c => c.status.attn).length;
+  $("#kpis").innerHTML = `
+    <div class="kpi"><div class="k">Courses</div><div class="v">${cs.length}</div><div class="s">${state.sec ? "in this programme" : d.sections.length + " programme groups"}</div></div>
+    <div class="kpi"><div class="k">Budgeted hours</div><div class="v">${fmtH(bud)}</div><div class="s">${(bud / d.annual).toFixed(1)} full-time years</div></div>
+    <div class="kpi"><div class="k">Assigned to people</div><div class="v">${fmtH(asg)}</div><div class="s">${bud ? fmtP(asg / bud * 100) : "–"} of budget</div></div>
+    <div class="kpi"><div class="k">Teaching staff</div><div class="v">${ppl.size}</div><div class="s">with hours on these courses</div></div>
+    <div class="kpi ${attn ? "alert" : ""}"><div class="k">Needs attention</div><div class="v">${attn}</div>${attn ? `<button class="s" id="kpi-attn" type="button">Show these courses</button>` : `<div class="s">all courses fully staffed</div>`}</div>`;
+  const b = $("#kpi-attn"); if (b) b.onclick = () => { state.attn = true; $("#attn").checked = true; setView("courses"); };
+}
+function axisRow(label) {
+  const d = state.data; let m = "";
+  for (let t = dayDate(d.d0); t.getTime() / DAY <= d.d1; t = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1))) {
+    const day = t.getTime() / DAY, jan = t.getUTCMonth() === 0 || day === d.d0;
+    m += `<div class="mlabel" style="left:${X(day)}%">${jan ? `<b>${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}</b>` : MONTHS[t.getUTCMonth()]}</div>`;
+  }
+  const p = d.periods.map(p => `<div class="plabel" style="${span(p.s, p.e)}" title="${esc(p.label + ": " + fmtRange(p.s, p.e))}">${X(p.e) - X(p.s) > 9 ? p.label : p.short}</div>`).join("");
+  return `<div class="row axis"><div class="info">${label}</div><div class="track">${p}${m}</div></div>`;
+}
+function gridLayer() {
+  const d = state.data; let h = "";
+  d.periods.forEach((p, i) => { if (i % 2 === 0) h += `<div class="pband" style="${span(p.s, p.e)}"></div>`; });
+  for (let t = dayDate(d.d0); t.getTime() / DAY <= d.d1; t = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1))) h += `<div class="mline" style="left:${X(t.getTime() / DAY)}%"></div>`;
+  return `<div class="grid-layer" aria-hidden="true">${h}</div>`;
+}
+const icon = cls => cls === "ok" ? `<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 5.2l2 2 4-4.4"/></svg>`
+  : cls === "none" ? "" : `<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 .8l4.5 8.4h-9z"/></svg>`;
+
+function chip(s, c) {
+  const tip = s.open ? `Open slot on ${c.code}\n${fmtP(s.pct)} of ${fmtH(c.budgetH)} = ${fmtH(s.hours)} without a named teacher`
+    : `${s.name}${s.coordinator ? " · course coordinator" : ""}${s.role === "assistant" ? " · student assistant" : ""}\n${fmtP(s.pct)} of ${fmtH(c.budgetH)} = ${fmtH(s.hours)}\nClick to see their year`;
+  const cls = s.open ? "open" : (s.pct === 0 ? "zero" : "") + (s.role === "assistant" ? " asst" : "");
+  return `<button type="button" class="chip ${cls}" data-person="${esc(s.key)}" data-tip="${esc(tip)}">${s.coordinator ? `<i class="cc" aria-label="coordinator"></i>` : ""}<span class="n">${esc(s.name)}</span><span class="p">${fmtP(s.pct)}</span><span class="h">${fmtH(s.hours)}</span></button>`;
+}
+function courseDetail(c) {
+  const rows = c.staff.map(s => `<tr><td>${s.open ? `<em>Unassigned</em>` : esc(s.name)}</td><td>${s.role === "assistant" ? "Student assistant" : s.coordinator ? "Coordinator, teacher" : "Teacher"}</td><td class="r num"><span class="share"><i style="width:${Math.min(100, s.pct)}%"></i></span>${fmtP(s.pct)}</td><td class="r num">${fmtH(s.hours)}</td></tr>`).join("")
+    || `<tr><td colspan="4" style="color:var(--muted)">No teachers entered.</td></tr>`;
+  const flags = [c.elective && "Elective", c.exchange && "Open to exchange students"].filter(Boolean).join(", ") || "–";
+  return `<div class="detail">
+    <div><table><thead><tr><th>Person</th><th>Role</th><th class="r">Share</th><th class="r">Hours</th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="2">Total</td><td class="r num">${fmtP(c.totalPct)}</td><td class="r num">${fmtH(c.staff.reduce((a, s) => a + s.hours, 0))}</td></tr></tfoot></table></div>
+    <dl>
+      <dt>Coordinator</dt><dd>${esc(c.coordRaw || "–")}</dd>
+      <dt>Runs</dt><dd>${c.start != null ? fmtRange(c.start, c.end) : "No dates"}${c.period ? " · period " + esc(c.period) : ""}</dd>
+      <dt>Programme</dt><dd>${esc(c.programme || "–")}</dd>
+      <dt>Credits</dt><dd>${isNaN(c.credits) ? "–" : c.credits + " hp"}</dd>
+      <dt>Budget</dt><dd class="num">${c.budPct != null ? fmtP(c.budPct) + " of a full-time year = " : ""}${fmtH(c.budgetH)}</dd>
+      <dt>Proposal</dt><dd class="num">${isNaN(c.propPct) ? "–" : fmtP(c.propPct) + " = " + fmtH(c.propPct * state.data.annual / 100)}</dd>
+      <dt>Weighting</dt><dd>${esc(c.weight || "–")}</dd>
+      <dt>Also</dt><dd>${flags}</dd>
+      <dt>Sheet row</dt><dd class="num">${c.sheetRow}</dd>
+    </dl>
+    ${c.comment ? `<div class="comment">${esc(c.comment)}</div>` : ""}
+  </div>`;
+}
+function renderCourses() {
+  const groups = filtered();
+  let h = gridLayer() + axisRow("Course");
+  for (const { s, cs } of groups) {
+    const bud = cs.reduce((a, c) => a + c.budgetH, 0);
+    h += `<div class="row sec-head"><div class="info"><span class="dot" style="background:${s.color}"></span><span class="t" title="${esc(s.title)}">${esc(s.title)}</span></div>
+      <div class="track"><span>${cs.length} course${cs.length === 1 ? "" : "s"}</span><span class="num">${fmtH(bud)} budgeted</span>${s.key ? `<span>${esc(s.key)}</span>` : ""}</div></div>`;
+    for (const c of cs) {
+      const has = c.start != null && c.end != null;
+      const left = has ? X(c.start) : 0, right = has ? X(c.end + 1) : 0;
+      const alignRight = left > 52;
+      const teamPos = !has ? "left:8px;right:8px" : alignRight ? `right:${(100 - right).toFixed(3)}%;left:8px` : `left:${left.toFixed(3)}%;right:8px`;
+      const tip = `${c.code} ${c.name}\n${has ? fmtRange(c.start, c.end) : "No dates"}${c.period ? " · period " + c.period : ""}\n${fmtH(c.budgetH)} budgeted · ${fmtP(c.totalPct)} staffed`;
+      h += `<div class="row crow" id="c-${c.id}" data-course="${c.id}">
+        <div class="info" tabindex="0" role="button" aria-expanded="${state.open.has(c.id)}" data-toggle="${c.id}">
+          <span class="code">${esc(c.code)}</span><span class="cname" title="${esc(c.name)}">${esc(c.name)}</span>
+          <div class="meta"><span>${isNaN(c.credits) ? "" : c.credits + " hp"}</span><span class="num">${fmtH(c.budgetH)}</span><span class="pill ${c.status.cls}">${icon(c.status.cls)}${esc(c.status.label)}</span></div>
+        </div>
+        <div class="track" style="--sc:${s.color}">
+          ${has ? `<div class="bar" style="${span(c.start, c.end)}" data-toggle="${c.id}" data-tip="${esc(tip)}"><span class="fill" style="width:${Math.min(100, c.totalPct)}%"></span><span>${esc(c.code)}</span><span class="d">${fmtRange(c.start, c.end)}</span></div>` : `<div class="bar" style="left:0;width:100%;border-left-style:dashed;opacity:.6">No start/end date in the sheet</div>`}
+          <div class="team ${alignRight ? "right" : ""}" style="position:absolute;top:42px;${teamPos}">${c.staff.map(s => chip(s, c)).join("") || `<span class="chip open">No teachers entered</span>`}</div>
+        </div>
+        ${state.open.has(c.id) ? courseDetail(c) : ""}
+      </div>`;
+    }
+  }
+  if (!groups.length) h += `<div class="empty">No courses match these filters.</div>`;
+  $("#board").innerHTML = h;
+  // let rows grow to fit wrapped chips
+  document.querySelectorAll(".crow .track").forEach(t => { const team = t.querySelector(".team"); if (team) t.style.minHeight = (team.offsetHeight + 52) + "px"; });
+}
+const heatCls = v => v <= 0.05 ? 0 : v <= 4 ? 1 : v <= 8 ? 2 : v <= 16 ? 3 : v <= 24 ? 4 : 5;
+function renderPeople() {
+  const d = state.data, q = state.q.toLowerCase();
+  const inSec = it => !state.sec || it.c.section.id === state.sec;
+  let ppl = d.people.map(p => {
+    const items = p.items.filter(inSec);
+    return { ...p, items, total: items.reduce((a, x) => a + x.s.hours, 0), coord: new Set(items.filter(x => x.s.coordinator).map(x => x.c.id)).size };
+  }).filter(p => p.items.length && (!q || (p.name + " " + p.items.map(x => x.c.code + " " + x.c.name).join(" ")).toLowerCase().includes(q)));
+  ppl.sort(state.sort.people === "name" ? (a, b) => a.name.localeCompare(b.name, "sv") : (a, b) => b.total - a.total || a.name.localeCompare(b.name, "sv"));
+
+  // Department weekly load (all visible people)
+  const all = weekly(ppl.flatMap(p => p.items), d);
+  const max = Math.max(1, ...all);
+  const step = [5, 10, 20, 25, 50, 100, 200, 250, 500].find(s => max / s <= 4) || 1000;
+  const top = Math.ceil(max / step) * step, H = 140 - 22 - 8;
+  let ch = "";
+  for (let v = step; v <= top; v += step) ch += `<div class="ygrid" style="bottom:${22 + v / top * H}px"><span>${v} h</span></div>`;
+  d.weeks.forEach((w, i) => {
+    const a = Math.max(w, d.d0), b = Math.min(w + 6, d.d1);
+    if (a > b) return;
+    const contrib = ppl.map(p => ({ n: p.name, v: weekly(p.items, d)[i] })).filter(x => x.v > 0.05).sort((x, y) => y.v - x.v).slice(0, 4);
+    const tip = `Week ${isoWeek(w)} · ${fmtD(w)}–${fmtD(w + 6)}\n${all[i].toFixed(0)} h of teaching across the department` + (contrib.length ? "\nMost: " + contrib.map(x => x.n + " " + x.v.toFixed(0) + " h").join(", ") : "");
+    const l = X(a), wd = X(b + 1) - l;
+    ch += `<div class="colbar" style="left:calc(${l}% + 1px);width:calc(${wd}% - 2px);height:${all[i] / top * H}px"></div><div class="hit" style="left:${l}%;width:${wd}%" data-tip="${esc(tip)}"></div>`;
+  });
+  const fte = all.reduce((a, v) => a + v, 0);
+  let h = gridLayer() + axisRow("Person") + `<div class="row dept"><div class="info"><h3>Hours per week</h3><p>${state.sec ? "This programme" : "Whole department"}, ${fmtH(fte)} in total. Each course's hours are spread evenly over the weeks it runs.</p></div><div class="track">${ch}</div></div>`;
+
+  for (const p of ppl) {
+    const wk = weekly(p.items, d);
+    const heat = d.weeks.map((w, i) => {
+      const a = Math.max(w, d.d0), b = Math.min(w + 6, d.d1); if (a > b) return "";
+      const v = wk[i], cls = heatCls(v);
+      return `<div class="w" style="${span(a, b)};background:var(--h${cls});${cls ? "" : "opacity:.6"}" data-tip="${esc(`${p.name} · week ${isoWeek(w)}\n${v.toFixed(1)} h teaching (${(v / (d.annual / 52) * 100).toFixed(0)}% of a full-time week)`)}"></div>`;
+    }).join("");
+    const lanes = [];
+    for (const it of [...p.items].sort((a, b) => (a.c.start ?? 1e9) - (b.c.start ?? 1e9))) {
+      if (it.c.start == null) continue;
+      let li = lanes.findIndex(l => l.end < it.c.start);
+      if (li < 0) { lanes.push({ end: -1e9, items: [] }); li = lanes.length - 1; }
+      lanes[li].end = it.c.end; lanes[li].items.push(it);
+    }
+    const laneHtml = lanes.map(l => `<div class="lane">${l.items.map(({ c, s }) => {
+      const tip = `${c.code} ${c.name}\n${fmtRange(c.start, c.end)}\n${s.coordOnly ? "Course coordinator (no teaching share entered)" : `${fmtP(s.pct)} of ${fmtH(c.budgetH)} = ${fmtH(s.hours)}${s.coordinator ? " · coordinator" : ""}${s.role === "assistant" ? " · student assistant" : ""}`}\nClick to open the course`;
+      return `<div class="bar ${s.coordOnly ? "co" : ""}" style="--sc:${c.section.color};${span(c.start, c.end)}" data-goto="${c.id}" data-tip="${esc(tip)}"><span>${esc(c.code)}</span><span class="d">${fmtH(s.hours)}</span></div>`;
+    }).join("")}</div>`).join("");
+    const pct = p.total / d.annual * 100;
+    const isOpen = state.openP.has(p.key);
+    h += `<div class="row prow" id="p-${esc(p.key.replace(/[^a-z0-9]+/gi, "_"))}" data-pkey="${esc(p.key)}">
+      <div class="info" tabindex="0" role="button" aria-expanded="${isOpen}" data-ptoggle="${esc(p.key)}">
+        <div class="pname"><span title="${esc(p.name)}">${esc(p.name)}</span><span class="tot">${fmtH(p.total)}</span></div>
+        <div class="meter" data-tip="${esc(fmtP(pct) + " of a " + d.annual.toLocaleString("en-GB") + " h working year")}"><i style="width:${Math.min(100, pct)}%"></i></div>
+        <div class="meta"><span class="num">${fmtP(pct)} of year</span><span>${p.items.length} course${p.items.length === 1 ? "" : "s"}</span>${p.coord ? `<span>coordinates ${p.coord}</span>` : ""}</div>
+      </div>
+      <div class="track"><div class="heat">${heat}</div>${laneHtml}</div>
+      ${isOpen ? personDetail(p) : ""}
+    </div>`;
+  }
+  if (!ppl.length) h += `<div class="empty">No people match these filters.</div>`;
+  $("#board").innerHTML = h;
+}
+function personDetail(p) {
+  const rows = [...p.items].sort((a, b) => (a.c.start ?? 1e9) - (b.c.start ?? 1e9)).map(({ c, s }) => `<tr><td><span class="num">${esc(c.code)}</span> ${esc(c.name)}</td><td>${c.start != null ? fmtRange(c.start, c.end) : "–"}</td><td>${s.coordOnly ? "Coordinator only" : s.role === "assistant" ? "Student assistant" : s.coordinator ? "Coordinator, teacher" : "Teacher"}</td><td class="r num">${fmtP(s.pct)}</td><td class="r num">${fmtH(s.hours)}</td></tr>`).join("");
+  return `<div class="detail" style="grid-template-columns:1fr"><div style="overflow-x:auto"><table><thead><tr><th>Course</th><th>Runs</th><th>Role</th><th class="r">Share</th><th class="r">Hours</th></tr></thead><tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="4">Total teaching</td><td class="r num">${fmtH(p.total)}</td></tr></tfoot></table></div></div>`;
+}
+function renderLegend() {
+  const d = state.data;
+  const secs = d.sections.map(s => `<span><i class="sw" style="background:${s.color}"></i>${esc(s.key || s.title)}</span>`).join("");
+  const extra = state.view === "courses"
+    ? `<span><i class="sw" style="background:var(--accent);border-radius:50%;width:8px;height:8px"></i>course coordinator</span><span>Thin line under a bar = share staffed</span>`
+    : `<span>Hours per week<span class="heat">${[1, 2, 3, 4, 5].map(i => `<i style="background:var(--h${i})"></i>`).join("")}</span>0–4 · 4–8 · 8–16 · 16–24 · 24+</span><span>Dashed bar = coordinator without a teaching share</span>`;
+  $("#legend").innerHTML = secs + extra;
+  $("#foot").innerHTML = `<p>Hours are the budgeted share of a ${d.annual.toLocaleString("en-GB")} h working year (“Budget % av HTE”), split between teachers by their “% av kursen”. Shaded columns mark study periods, worked out from the courses' own start and end dates.</p>
+    <p>Only the course sheet is used. Supervision and the staff summary are not included in the totals, and neither is teaching outside this sheet.</p>`;
+}
+function renderAll() {
+  const v = state.view;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
+  $("#f-attn").hidden = v !== "courses";
+  $("#sort").innerHTML = v === "courses"
+    ? `<option value="sheet">Sheet order</option><option value="start">Start date</option><option value="hours">Most hours</option>`
+    : `<option value="hours">Most hours</option><option value="name">Name</option>`;
+  $("#sort").value = state.sort[v];
+  renderSource(); renderKpis(); renderLegend();
+  v === "courses" ? renderCourses() : renderPeople();
+}
+function setView(v) {
+  state.view = v;
+  try { localStorage.setItem("csy-view", v); } catch (e) {}
+  renderAll();
+}
+function flashTo(el) { if (!el) return; el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+
+/* ---------- Events ---------- */
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setView(b.dataset.view));
+$("#q").oninput = e => { state.q = e.target.value; state.view === "courses" ? renderCourses() : renderPeople(); };
+$("#sec").onchange = e => { state.sec = e.target.value; renderAll(); };
+$("#attn").onchange = e => { state.attn = e.target.checked; renderCourses(); };
+$("#sort").onchange = e => { state.sort[state.view] = e.target.value; state.view === "courses" ? renderCourses() : renderPeople(); };
+$("#board").addEventListener("click", e => {
+  const chipEl = e.target.closest("[data-person]");
+  if (chipEl && chipEl.dataset.person) {
+    const key = chipEl.dataset.person;
+    state.q = ""; $("#q").value = ""; state.openP.add(key); setView("people");
+    flashTo(document.querySelector(`.prow[data-pkey="${CSS.escape(key)}"]`)); return;
+  }
+  const go = e.target.closest("[data-goto]");
+  if (go) {
+    const id = +go.dataset.goto; state.q = ""; $("#q").value = ""; state.attn = false; $("#attn").checked = false; state.open.add(id); setView("courses");
+    flashTo(document.getElementById("c-" + id)); return;
+  }
+  const t = e.target.closest("[data-toggle]");
+  if (t) { const id = +t.dataset.toggle; state.open.has(id) ? state.open.delete(id) : state.open.add(id); renderCourses(); $(`#c-${id} .info`)?.focus({ preventScroll: true }); return; }
+  const pt = e.target.closest("[data-ptoggle]");
+  if (pt) { const k = pt.dataset.ptoggle; state.openP.has(k) ? state.openP.delete(k) : state.openP.add(k); renderPeople(); document.querySelector(`.prow[data-pkey="${CSS.escape(k)}"] .info`)?.focus({ preventScroll: true }); }
+});
+$("#board").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".info[role=button]")) { e.preventDefault(); e.target.click(); } });
+const tip = $("#tip");
+document.addEventListener("mouseover", e => { const t = e.target.closest("[data-tip]"); if (!t) { tip.hidden = true; return; } tip.textContent = t.dataset.tip; tip.hidden = false; });
+document.addEventListener("mousemove", e => {
+  if (tip.hidden) return;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 16;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 12;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+});
+document.addEventListener("scroll", () => tip.hidden = true, true);
+
+function readFile(file) {
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const wb = XLSX.read(new Uint8Array(fr.result), { type: "array", cellDates: true });
+      load(parseWorkbook(wb), { sample: false, fileName: file.name });
+    } catch (err) {
+      const box = $("#err"); box.hidden = false;
+      box.textContent = `Could not read “${file.name}”. ${err.message || err}`;
+    }
+  };
+  fr.readAsArrayBuffer(file);
+}
+$("#file").onchange = e => { readFile(e.target.files[0]); e.target.value = ""; };
+$("#sample").onclick = () => loadSample();
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || !e.relatedTarget) drop.classList.remove("over"); }));
+document.addEventListener("drop", e => readFile(e.dataTransfer?.files?.[0]));
+
+function loadSample() {
+  const h = findHeader(MOCK_ROWS);
+  load(parseRows(MOCK_ROWS, h, "Utbildningsutbud (example)"), { sample: true });
+}
+loadSample();
+</script>
+
+</body>
+</html>
